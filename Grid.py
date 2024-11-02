@@ -224,7 +224,7 @@ class Grid:
         if self.revealed == self.x * self.y - self.numMines:
             self.won = True
 
-        print(self.revealed)
+        #print(self.revealed)
 
 
 
@@ -306,7 +306,7 @@ class Grid:
         self.mines(mineList)
 
 
-        print(mineList)
+        #print(mineList)
 
 
 
