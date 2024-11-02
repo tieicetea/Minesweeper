@@ -10,6 +10,8 @@ class Grid:
         self.started = False
         self.minesSpawned = False
         self.lost = False
+        self.won = False
+        self.revealed = 0
 
     def setup(self, difficulty):
         self.lost = False
@@ -39,7 +41,7 @@ class Grid:
 
         for i in range(self.x * self.y):
             self.tileList.append(Tile(i, *self.numToCord(i)))
-            print(self.numToCord(i))
+            #print(self.numToCord(i))
 
         self.startTime = pygame.time.get_ticks()
 
@@ -49,7 +51,7 @@ class Grid:
     def draw(self):
         allFont = pygame.font.Font("freesansbold.ttf", 30)
 
-        if self.started and not self.lost:
+        if self.started and not self.lost and not self.won:
             for i in range(self.x * self.y):
                 self.tileList[i].draw(self.screen)
 
@@ -82,9 +84,24 @@ class Grid:
             #board, numbers, flags
 
         elif self.lost:
-            #loss screen
-            pass
-        else:
+
+            bigFont = pygame.font.Font("freesansbold.ttf", 40)
+
+            loseText = bigFont.render("You Lost!", True, "red", "gray10")
+            loseRect = loseText.get_rect()
+            loseRect.center = (300, 300)
+            self.screen.blit(loseText, loseRect)
+
+        elif self.won:
+
+            bigFont = pygame.font.Font("freesansbold.ttf", 40)
+
+            loseText = bigFont.render("You Won!", True, "green", "gray10")
+            loseRect = loseText.get_rect()
+            loseRect.center = (300, 300)
+            self.screen.blit(loseText, loseRect)
+    
+        elif not self.started:
             #select difficulty screen
 
             selectText = allFont.render("Select your Difficulty", True, "White", "gray10")
@@ -149,18 +166,18 @@ class Grid:
 
         for i in range(self.x * self.y):
             if self.tileList[i].mine: 
-                print('mine ', i)
+                #print('mine ', i)
                 continue
 
             xNum, yNum = self.numToCord(i)
 
-            print(xNum)
+            #print(xNum)
 
             xNum = (int(xNum) - self.xStart) / Tile.dim
             yNum = (int(yNum) - self.yStart) / Tile.dim
             
             
-            print(xNum, yNum)
+            #print(xNum, yNum)
 
             if (xNum != 0.0 and yNum != 0.0 and self.tileList[i-self.x - 1].mine): self.tileList[i].adjacent += 1 # top left
 
@@ -187,12 +204,27 @@ class Grid:
         if (xNum >= self.xStart and xNum < self.xStart + self.x * Tile.dim) and (yNum >= self.yStart and yNum < self.yStart + self.y * Tile.dim):
             num = self.cordToNum(*cord)
 
+            
+
+        
+
+            if (self.tileList[num].mine):
+                self.lost = True
+            elif not self.tileList[num].revealed:
+                self.revealed += 1
+
             self.tileList[num].reveal()
+
             if self.tileList[num].adjacent == 0:
 
                 visited = [False for i in range(self.x * self.y)]#bool listx
                 visited[num] = True
                 self.revealWaterfall(num, visited)
+
+        if self.revealed == self.x * self.y - self.numMines:
+            self.won = True
+
+        print(self.revealed)
 
 
 
@@ -201,8 +233,13 @@ class Grid:
         
         if (num < 0 or num >= self.x * self.y):
             return
+        
+        if not self.tileList[num].revealed:
+            self.revealed += 1
 
         self.tileList[num].reveal()
+       
+
         visited[num] = True
 
         if (self.tileList[num].adjacent == 0): # this isn't working, its wrapping the edges
@@ -260,7 +297,7 @@ class Grid:
         if (xNum >= self.xStart and xNum < self.xStart + self.x * Tile.dim) and (yNum >= self.yStart and yNum < self.yStart + self.y * Tile.dim):
             num = self.cordToNum(*cord)
             
-            while (len(mineList) <= self.numMines):
+            while (len(mineList) < self.numMines):
                 x = int(m.floor(r.random() * self.x * self.y))
                 if not ((x >= num - 1 and x <= num + 1) or (x >= num - self.x - 1 and x <= num - self.x + 1) or (x >= num + self.x - 1 and x <= num + self.x + 1)):
                     mineList.add(x)
@@ -269,7 +306,7 @@ class Grid:
         self.mines(mineList)
 
 
-
+        print(mineList)
 
 
 
